@@ -1,3 +1,8 @@
+REGISTRY_HOST=docker.io
+USERNAME=degauss
+NAME=$(shell basename "$(CURDIR)")
+IMAGE=$(REGISTRY_HOST)/$(USERNAME)/$(NAME)
+
 build:
 	docker build -t jfs_data .
 
