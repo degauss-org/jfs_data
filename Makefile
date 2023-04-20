@@ -4,7 +4,7 @@ NAME=$(shell basename "$(CURDIR)")
 IMAGE=$(REGISTRY_HOST)/$(USERNAME)/$(NAME)
 
 build:
-	docker build -t jfs_data .
+	docker build -t $(IMAGE) .
 
 shell:
 	docker run --rm -it -p 127.0.0.1:3838:3838 --entrypoint=/bin/bash jfs_data
@@ -22,10 +22,6 @@ endif
 ifndef DOCKER_PAT
 	$(error DOCKER_PAT is not set)
 endif
-	git commit -am "Release for image version $(VERSION)" --allow-empty
-	git tag -fa $(VERSION) -m "${VERSION}"
-	git push origin ${VERSION}
-	git push
 	echo "${DOCKER_PAT}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
 	docker tag ${IMAGE}:latest ${IMAGE}:${VERSION}
 	docker push ${IMAGE}:${VERSION}
