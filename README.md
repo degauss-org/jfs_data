@@ -2,8 +2,8 @@
 
 > DeGAUSS pipeline that generates one CSV file of aggregated, monthly data for JFS from a geocoded CSV file
 
-[![Docker Build Status](https://img.shields.io/docker/automated/degauss/jfs_aggregated_data_report)](https://hub.docker.com/repository/docker/degauss/jfs_aggregated_data_report/tags)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/degauss-org/jfs_aggregated_data_report)](https://github.com/degauss-org/jfs_aggregated_data_report/releases)
+[![Docker Build Status](https://img.shields.io/docker/automated/degauss/jfs_data)](https://hub.docker.com/repository/docker/degauss/jfs_data/tags)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/degauss-org/jfs_data)](https://github.com/degauss-org/jfs_data/releases)
 
 ## Instructions for Use
 
