@@ -86,7 +86,7 @@ ui <- fluidPage(
 # Define server logic to read selected file ----
 server <- function(input, output, session) {
   
-  options(shiny.maxRequestSize = 50 * 1024^2)
+  options(shiny.maxRequestSize = 500 * 1024^2)
   
   output$original <- renderTable({
     
