@@ -110,48 +110,7 @@ server <- function(input, output, session) {
                    names_to = 'address_type',
                    values_to = 'address')
     
-    d <- d |> 
-      mutate(address = str_replace_all(address, '[[:blank:]]', ' '))
-    
-    d <- d |> 
-      mutate(address = str_replace_all(address, fixed('\\'), ''),
-             address = str_replace_all(address, fixed('"'), ''),
-             address = str_replace_all(address, '[^[:alnum:] ]', ''))
-    
-    foster_char_strings <- c('Ronald McDonald House',
-                             '350 Erkenbrecher Ave',
-                             '350 Erkenbrecher Avenue',
-                             '350 Erkenbrecher Av',
-                             '222 East Central Parkway',
-                             '222 East Central Pkwy',
-                             '222 East Central Pky',
-                             '222 Central Parkway',
-                             '222 Central Pkwy',
-                             '222 Central Pky',
-                             '3333 Burnet Ave',
-                             '3333 Burnet Avenue',
-                             '3333 Burnet Av',
-                             'verify',
-                             'foreign',
-                             'foreign country',
-                             'unknown')
-    d <- d |> 
-      mutate(bad_address = purrr::map(address, ~ str_detect(.x, coll(foster_char_strings, ignore_case=TRUE)))) %>%
-      mutate(bad_address = purrr::map_lgl(bad_address, any))
-    
-    d[is.na(d$address), 'bad_address'] <- TRUE
-    
-    no_no_regex_strings <- c('(10722\\sWYS)',
-                             '\\bP(OST)*\\.*\\s*[O|0](FFICE)*\\.*\\sB[O|0]X',
-                             '(3333\\s*BURNETT*\\s*A.*452[12]9)')
-    d <- d |> 
-      mutate(PO = purrr::map(address, ~ str_detect(.x, regex(no_no_regex_strings, ignore_case=TRUE)))) %>%
-      mutate(PO = purrr::map_lgl(PO, any))
-    
-    d_prepped <- d |> 
-      filter(!bad_address & !PO)
-    
-    d_prepped
+    d_prepped <- d
   })
   
   output$prepped <- renderTable({
