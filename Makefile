@@ -22,6 +22,10 @@ endif
 ifndef DOCKER_PAT
 	$(error DOCKER_PAT is not set)
 endif
+	git commit -am "Release for image version $(VERSION)" --allow-empty
+	git tag -fa $(VERSION) -m "${VERSION}"
+	git push origin ${VERSION}
+	git push
 	echo "${DOCKER_PAT}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
 	docker tag ${IMAGE}:latest ${IMAGE}:${VERSION}
 	docker push ${IMAGE}:${VERSION}
