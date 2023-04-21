@@ -94,6 +94,15 @@ server <- function(input, output, session) {
     
     df <- read_csv(input$file$datapath)
     
+    validate(
+      need("ALLEGATION_ADDRESS" %in% names(df),
+           "No ALLEGATION_ADRESS column found in the input file")
+    )
+    validate(
+      need("CHILD_ADDRESS" %in% names(df),
+           "No CHILD_ADRESS column found in the input file")
+    )
+    
     
     head(df[,c("INTAKE_ID", "ALLEGATION_ADDRESS", "CHILD_ADDRESS")])
     
