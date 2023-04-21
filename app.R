@@ -21,11 +21,13 @@ ui <- fluidPage(
       # Input: Select a file ----
       fileInput("file", "Choose CSV File",
                 multiple = TRUE,
+                placeholder = "Browse...",
+                buttonLabel = "Import File",
                 accept = c("text/csv",
                            "text/comma-separated-values,text/plain",
                            ".csv")),
       
-      downloadButton('download', "Download prepped file")
+      downloadButton('download', "Save prepped file")
       
     ),
     
