@@ -7,7 +7,7 @@ library(shiny)
 ui <- fluidPage(
 
   # App title ----
-  titlePanel("JFS CAN File Prep"),
+  titlePanel("AFT File Ingestion"),
   
   # Sidebar layout with input and output definitions ----
   sidebarLayout(
@@ -100,43 +100,13 @@ server <- function(input, output, session) {
   })
   
   output$download <- downloadHandler(
-    file <-  "intake_report.html",
+    filename = function() {
+      "aft_intake_data_prepped.csv"
+      },
     content = function(file) {
-      tempReport <- file.path(tempdir(), "intake_report.Rmd")
-      file.copy("intake_report.Rmd", tempReport, overwrite = TRUE)
-      params <- list(d_prepped = d_prepped())
-      rmarkdown::render(tempReport, 
-                        output_file = file,
-                        params = params,
-                        envir = new.env(parent = globalenv())
-      )
+      write_csv(d_prepped(), file)
     }
   )
-  
-  # output$download <-  downloadHandler(
-  #       file <-  "intake_report.html",
-  #       content = function(file) {
-  #         tempReport <- file.path(tempdir(), "intake_report.Rmd")
-  #         file.copy("intake_report.Rmd", tempReport, overwrite = TRUE)
-  #         params <- list(d_prepped = d_prepped())
-  #         
-  #         withCallingHandlers({
-  #           shinyjs::html("console", "")
-  #           
-  #           rmarkdown::render(tempReport, 
-  #                             output_file = file,
-  #                             params = params,
-  #                             envir = new.env(parent = globalenv()),
-  #                             quiet = FALSE
-  #           )
-  #           
-  #         },
-  #         message = function(m) {
-  #           shinyjs::html(id = "console", html = m$message, add = TRUE)
-  #         })
-  #       }
-  # )
-  
   
 }
 # Run the app ----
