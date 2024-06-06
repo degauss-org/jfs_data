@@ -60,17 +60,17 @@ server <- function(input, output, session) {
     df <- read_csv(input$file$datapath)
     
     validate(
-      need("ALLEGATION_ADDRESS" %in% names(df),
-           "No ALLEGATION_ADRESS column found in the input file")
+      need("Allegation Address" %in% names(df),
+           "No Allegation Addresss column found in the input file")
     )
     validate(
-      need("CHILD_ADDRESS" %in% names(df),
-           "No CHILD_ADRESS column found in the input file")
+      need("Child's Address" %in% names(df),
+           "No Child's Address column found in the input file")
       
     )
     
     
-    head(df[,c("INTAKE_ID", "ALLEGATION_ADDRESS", "CHILD_ADDRESS")])
+    head(df[,c("Intake ID", "Allegation Address", "Child's Address")])
     
   })
   
@@ -81,6 +81,11 @@ server <- function(input, output, session) {
     d <- read_csv(input$file$datapath)
     
     d <- d |> 
+      rename_with(toupper, everything()) |> 
+      rename_with(~stringr::str_replace_all(.x, " ", "_"), everything()) |> 
+      rename(CHILD_ADDRESS = "CHILD'S_ADDRESS",
+             CHILD_ADDRESS_START = "CHILD'S_ADDRESS_START",
+             FAM_ASSES_DECISION = "FAM_ASSESS._DECISION") |> 
       pivot_longer(cols = c(ALLEGATION_ADDRESS, CHILD_ADDRESS),
                    names_to = 'address_type',
                    values_to = 'address')
