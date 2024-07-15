@@ -2,6 +2,7 @@ library(tidyr)
 library(readr)
 library(dplyr)
 library(shiny)
+library(addr)
 
 # Define UI for data upload app ----
 ui <- fluidPage(
@@ -74,7 +75,7 @@ server <- function(input, output, session) {
     
   })
   
-  d_prepped <- reactive({
+  d_geocoded <- reactive({
     
     req(input$file)
     
@@ -90,21 +91,57 @@ server <- function(input, output, session) {
                    names_to = 'address_type',
                    values_to = 'address')
     
-    d_prepped <- d
+    t <- d |> 
+      tidyr::drop_na(address) |> 
+      mutate(clean_address = toupper(clean_address_text(address))) |> 
+      dplyr::distinct(pick(INTAKE_ID, clean_address), .keep_all = T)
+    
+    t$addr <- as_addr(t$clean_address)
+    
+    t$cagis_addr_matches <- addr_match(t$addr, cagis_addr$cagis_addr)
+    
+    t2 <- t |>
+      mutate(
+        addr_match_result =
+          case_when(
+            purrr::map_lgl(cagis_addr_matches, is.null) ~ NA,
+            purrr::map_dbl(cagis_addr_matches, vctrs::vec_size) == 0 ~ "no_match",
+            purrr::map_dbl(cagis_addr_matches, vctrs::vec_size) == 1 ~ "single_match",
+            purrr::map_dbl(cagis_addr_matches, vctrs::vec_size) > 1 ~ "multi_match",
+            .default = "foofy"
+          ) |>
+          factor(levels = c("no_match", "single_match", "multi_match"))
+      )
+    
+    t3 <- t2  |>
+      filter(addr_match_result %in% c("single_match")) |> 
+      #tibble::enframe(name = "input_addr", value = "cagis_addr") |>
+      dplyr::mutate(cagis_addr = purrr::list_c(cagis_addr_matches)) |>
+      dplyr::left_join(cagis_addr, by = "cagis_addr")
+    
+    t4 <- t3 |> 
+      tidyr::unnest(cagis_addr_data) |> 
+      tidyr::drop_na(cagis_s2) |> 
+      mutate(block_group_id = tiger_block_groups(s2::as_s2_cell(cagis_s2)), year = '2010') 
+    
+    d_geocoded <- t4|> 
+      mutate(census_tract_id = stringr::str_sub(block_group_id, end = -2))
+    
   })
   
   output$prepped <- renderTable({
     
-    head(d_prepped()[, c("INTAKE_ID",  "address")])
+    
+    head(d_geocoded()[, c("INTAKE_ID",  "address", "census_tract_id", "block_group_id")])
     
   })
   
   output$download <- downloadHandler(
     filename = function() {
-      "aft_intake_data_prepped.csv"
+      "aft_intake_data_geocoded.csv"
       },
     content = function(file) {
-      write_csv(d_prepped(), file)
+      write_csv(d_geocoded(), file)
     }
   )
   
