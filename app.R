@@ -26,14 +26,13 @@ ui <- fluidPage(
                            "text/comma-separated-values,text/plain",
                            ".csv")),
       
-      downloadButton('download', "Download Report")
+      #downloadButton('download', "Download Report")
+      actionButton('pin', "Save data")
       
     ),
     
     # Main panel for displaying outputs ----
     mainPanel(
-      
-      rclipboard::rclipboardSetup(),
       
       fluidRow(
         column(
@@ -86,7 +85,8 @@ server <- function(input, output, session) {
       rename_with(~stringr::str_replace_all(.x, " ", "_"), everything()) |> 
       rename(CHILD_ADDRESS = "CHILD'S_ADDRESS",
              CHILD_ADDRESS_START = "CHILD'S_ADDRESS_START",
-             FAM_ASSES_DECISION = "FAM_ASSESS._DECISION") |> 
+             FAM_ASSES_DECISION = "FAM_ASSESS._DECISION",
+             MANDATED_REPORTER = "MANDATED_REPORTER?") |> 
       pivot_longer(cols = c(ALLEGATION_ADDRESS, CHILD_ADDRESS),
                    names_to = 'address_type',
                    values_to = 'address')
@@ -136,14 +136,25 @@ server <- function(input, output, session) {
     
   })
   
-  output$download <- downloadHandler(
-    filename = function() {
-      "aft_intake_data_geocoded.csv"
-      },
-    content = function(file) {
-      write_csv(d_geocoded(), file)
-    }
-  )
+  # output$download <- downloadHandler(
+  #   filename = function() {
+  #     "aft_intake_data_geocoded.csv"
+  #     },
+  #   content = function(file) {
+  #     write_csv(d_geocoded(), file)
+  #   }
+  # )
+  
+  observeEvent(input$pin, {
+    validate(need(!is.null(d_geocoded()),"Please wait for geocoded dataset"))
+    
+    salt_board <- pins::board_connect(auth = "manual",
+                                      server = Sys.getenv("CONNECT_SERVER_DEV"),
+                                      key = Sys.getenv("CONNECT_API_KEY_DEV"))
+    
+    salt_board |> 
+      pins::pin_write(d_geocoded(), "AFT_intake_data_geocoded")
+  })
   
 }
 # Run the app ----
