@@ -25,8 +25,7 @@ ui <- fluidPage(
                 accept = c("text/csv",
                            "text/comma-separated-values,text/plain",
                            ".csv")),
-      
-      #downloadButton('download', "Download Report")
+
       actionButton('pin', "Save data")
       
     ),
@@ -86,15 +85,24 @@ server <- function(input, output, session) {
       rename(CHILD_ADDRESS = "CHILD'S_ADDRESS",
              CHILD_ADDRESS_START = "CHILD'S_ADDRESS_START",
              FAM_ASSES_DECISION = "FAM_ASSESS._DECISION",
-             MANDATED_REPORTER = "MANDATED_REPORTER?") |> 
-      pivot_longer(cols = c(ALLEGATION_ADDRESS, CHILD_ADDRESS),
-                   names_to = 'address_type',
-                   values_to = 'address')
+             MANDATED_REPORTER = "MANDATED_REPORTER?") 
     
-    t <- d |> 
+    #if two different addresses, keep allegation; if one address, keep whichever it is
+    d1 <- d |> 
+      filter(ALLEGATION_ADDRESS == "Unknown Address" | is.na(ALLEGATION_ADDRESS)) |> 
+      mutate(address = CHILD_ADDRESS)
+
+    d2 <- d |>
+      filter(!INTAKE_ID %in% d1$INTAKE_ID) |> 
+      mutate(address = ALLEGATION_ADDRESS)
+    
+    
+     d3 <- rbind(d1, d2) |> 
+       select(-c(ALLEGATION_ADDRESS, CHILD_ADDRESS))
+    
+    t <- d3 |> 
       tidyr::drop_na(address) |> 
-      mutate(clean_address = toupper(clean_address_text(address))) |> 
-      dplyr::distinct(pick(INTAKE_ID, clean_address), .keep_all = T)
+      mutate(clean_address = toupper(clean_address_text(address))) 
     
     t$addr <- as_addr(t$clean_address)
     
@@ -124,26 +132,21 @@ server <- function(input, output, session) {
       tidyr::drop_na(cagis_s2) |> 
       mutate(block_group_id = tiger_block_groups(s2::as_s2_cell(cagis_s2)), year = '2010') 
     
-    d_geocoded <- t4|> 
-      mutate(census_tract_id = stringr::str_sub(block_group_id, end = -2))
+    t5 <- t4|> 
+      mutate(census_tract_id = stringr::str_sub(block_group_id, end = -2)) 
+    
+    d_geocoded <- t5 |> 
+      select(INTAKE_ID, SCREENING_DECISION, DECISION_DATE, BIRTH_DATE, PERSON_ID, RACE,
+             MANDATED_REPORTER, block_group_id, census_tract_id)
     
   })
   
   output$prepped <- renderTable({
     
     
-    head(d_geocoded()[, c("INTAKE_ID",  "address", "census_tract_id", "block_group_id")])
+    head(d_geocoded()[, c("INTAKE_ID", "census_tract_id")])
     
   })
-  
-  # output$download <- downloadHandler(
-  #   filename = function() {
-  #     "aft_intake_data_geocoded.csv"
-  #     },
-  #   content = function(file) {
-  #     write_csv(d_geocoded(), file)
-  #   }
-  # )
   
   observeEvent(input$pin, {
     validate(need(!is.null(d_geocoded()),"Please wait for geocoded dataset"))
