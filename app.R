@@ -165,8 +165,8 @@ server <- function(input, output, session) {
     
     showModal(
       modalDialog(
-        title = "",
-        message = "Data successfully saved!",
+        title = "Data successfully saved!",
+        message = "You may now exit this application",
         easyClose = TRUE,
         footer = NULL
     ))
