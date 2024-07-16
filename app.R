@@ -3,6 +3,7 @@ library(readr)
 library(dplyr)
 library(shiny)
 library(addr)
+library(shinycssloaders)
 
 # Define UI for data upload app ----
 ui <- fluidPage(
@@ -25,8 +26,8 @@ ui <- fluidPage(
                 accept = c("text/csv",
                            "text/comma-separated-values,text/plain",
                            ".csv")),
-
-      actionButton('pin', "Save data")
+      
+      uiOutput('pin_button')
       
     ),
     
@@ -36,12 +37,11 @@ ui <- fluidPage(
       fluidRow(
         column(
           h3("Original Data"),
-          tableOutput("original"), width = 6),
+          withSpinner(tableOutput("original")), width = 6),
         column(
           h3("Prepped Data"),
-          tableOutput("prepped"), width = 4)
-      ),
-      verbatimTextOutput("console")
+          withSpinner(tableOutput("prepped")), width = 4)
+      )
     )
     
   )
@@ -76,7 +76,7 @@ server <- function(input, output, session) {
   d_geocoded <- reactive({
     
     req(input$file)
-    
+
     d <- read_csv(input$file$datapath)
     
     d <- d |> 
@@ -137,8 +137,8 @@ server <- function(input, output, session) {
     
     d_geocoded <- t5 |> 
       select(INTAKE_ID, SCREENING_DECISION, DECISION_DATE, BIRTH_DATE, PERSON_ID, RACE,
-             MANDATED_REPORTER, block_group_id, census_tract_id)
-    
+             MANDATED_REPORTER, block_group_id, census_tract_id) 
+
   })
   
   output$prepped <- renderTable({
@@ -148,8 +148,13 @@ server <- function(input, output, session) {
     
   })
   
+  output$pin_button <- renderUI({
+    req(d_geocoded())
+    
+    actionButton('pin', "Save data")
+  })
+  
   observeEvent(input$pin, {
-    validate(need(!is.null(d_geocoded()),"Please wait for geocoded dataset"))
     
     salt_board <- pins::board_connect(auth = "manual",
                                       server = Sys.getenv("CONNECT_SERVER_DEV"),
@@ -157,7 +162,17 @@ server <- function(input, output, session) {
     
     salt_board |> 
       pins::pin_write(d_geocoded(), "AFT_intake_data_geocoded")
+    
+    showModal(
+      modalDialog(
+        title = "",
+        message = "Data successfully saved!",
+        easyClose = TRUE,
+        footer = NULL
+    ))
+    
   })
+  
   
 }
 # Run the app ----
