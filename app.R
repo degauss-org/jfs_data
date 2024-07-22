@@ -41,10 +41,13 @@ ui <- fluidPage(
         column(
           h3("Prepped Data"),
           withSpinner(tableOutput("prepped")), width = 4)
+      ),
+      fluidRow(
+        column(tableOutput("summary_table_1"), width = 5),
+        column(tableOutput("summary_table_2"), width = 5)
+        )
       )
     )
-    
-  )
 )
 
 # Define server logic to read selected file ----
@@ -78,6 +81,7 @@ server <- function(input, output, session) {
     req(input$file)
 
     d <- read_csv(input$file$datapath)
+    d <- read_csv('test_sacwis_output.csv')
     
     d <- d |> 
       rename_with(toupper, everything()) |> 
@@ -87,10 +91,20 @@ server <- function(input, output, session) {
              FAM_ASSES_DECISION = "FAM_ASSESS._DECISION",
              MANDATED_REPORTER = "MANDATED_REPORTER?") 
     
+    #just keep one record for each person-decision point; don't need record of initial decision and final decision
+    d <- d |> 
+      group_by(DECISION_DATE, PERSON_ID) |> 
+      slice_tail() |> 
+      ungroup()
+    
+    num_unique_person_dates <- nrow(d)
+    
     #if two different addresses, keep allegation; if one address, keep whichever it is
     d1 <- d |> 
       filter(ALLEGATION_ADDRESS == "Unknown Address" | is.na(ALLEGATION_ADDRESS)) |> 
       mutate(address = CHILD_ADDRESS)
+    
+    used_child_address <- nrow(d1)
 
     d2 <- d |>
       filter(!INTAKE_ID %in% d1$INTAKE_ID) |> 
@@ -99,12 +113,19 @@ server <- function(input, output, session) {
     
      d3 <- rbind(d1, d2) |> 
        select(-c(ALLEGATION_ADDRESS, CHILD_ADDRESS))
+     
+     no_address_recorded <- nrow(
+       d3 |> 
+         filter(is.na(address)) 
+     )
     
     t <- d3 |> 
       tidyr::drop_na(address) |> 
       mutate(clean_address = toupper(clean_address_text(address))) 
     
     t$addr <- as_addr(t$clean_address)
+    
+    num_addr_attempted_match <- nrow(t)
     
     t$cagis_addr_matches <- addr_match(t$addr, cagis_addr$cagis_addr)
     
@@ -120,6 +141,26 @@ server <- function(input, output, session) {
           ) |>
           factor(levels = c("no_match", "single_match", "multi_match"))
       )
+    
+    print_addr_matches <- t2 |> 
+      select(addr_match_result) |> 
+      group_by(addr_match_result) |> 
+      summarise(n_results = n()) |> 
+      ungroup()
+
+    
+    output$summary_table_1 <- renderTable({
+      req(input$file)
+      
+       tibble::enframe(c(num_unique_person_dates = num_unique_person_dates, 
+                         used_child_address = used_child_address, 
+                         no_address_recorded = no_address_recorded,
+                         num_addr_attempted_match = num_addr_attempted_match)) 
+    })
+    
+    output$summary_table_2 <- renderTable({  
+      print_addr_matches 
+    })
     
     t3 <- t2  |>
       filter(addr_match_result %in% c("single_match")) |> 
@@ -166,7 +207,7 @@ server <- function(input, output, session) {
     showModal(
       modalDialog(
         title = "Data successfully saved!",
-        message = "You may now exit this application",
+        "You may now exit this application",
         easyClose = TRUE,
         footer = NULL
     ))
