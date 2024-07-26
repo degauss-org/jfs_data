@@ -39,13 +39,24 @@ ui <- fluidPage(
           h3("Original Data"),
           withSpinner(tableOutput("original")), width = 6),
         column(
-          h3("Prepped Data"),
+          h3("Geocoded Data"),
           withSpinner(tableOutput("prepped")), width = 4)
       ),
+      hr(),
       fluidRow(
+        h3('Summary Tables'),
         column(tableOutput("summary_table_1"), width = 5),
         column(tableOutput("summary_table_2"), width = 5)
-        )
+        ),
+      fluidRow(
+        p(strong("Checks:"),"num_addr_attempted_match + no_address_recorded = num_unique_person_dates"),
+        p("sum of `addr_match_result` table results should equal num_addr_attempted_match")
+      ),
+      hr(),
+      fluidRow(
+        h3("Neighborhood Report"),
+        tableOutput("report_table")
+      )
       )
     )
 )
@@ -74,7 +85,7 @@ server <- function(input, output, session) {
     
     head(df[,c("Intake ID", "Allegation Address", "Child's Address")])
     
-  })
+  }, digits = 0)
   
   d_geocoded <- reactive({
     
@@ -187,10 +198,101 @@ server <- function(input, output, session) {
     
     head(d_geocoded()[, c("INTAKE_ID", "census_tract_id")])
     
+  }, digits = 0)
+  
+  d_report <- reactive({
+    req(d_geocoded())
+    
+    tract_to_neighborhood <- readRDS('tract_to_neighborhood.rds')
+    
+    r <- d_geocoded()
+    
+    r <- r |>
+      mutate(screened_in = SCREENING_DECISION %in% c("SCREENED IN", "SCREENED IN AR"))
+    
+    ##
+    r <- r  |> 
+      mutate(DECISION_DATE = lubridate::as_date(DECISION_DATE, format = "%m/%d/%y"),
+             BIRTH_DATE = lubridate::as_date(BIRTH_DATE, format = "%m/%d/%y")) |> 
+      mutate(month = lubridate::month(DECISION_DATE),
+             year = lubridate::year(DECISION_DATE)) 
+    
+    #get age, sort into groups
+    r <- r |>
+      mutate(BIRTH_DATE = replace_na(BIRTH_DATE, as.Date('1900-01-01'))) |>
+      mutate(age = as.numeric(difftime(DECISION_DATE, BIRTH_DATE, units = "weeks")/52.25)) |>
+      mutate(age_grp = case_when(age <= 5.0 ~ "zero_five",
+                                 age < 19 ~ "five_plus",
+                                 age >= 19 ~ "no_birth_date"))
+    d_neigh <- r  |>
+      mutate(fips_tract_id = as.character(census_tract_id)) |> #comment these out when testing with concentrated data
+      left_join(tract_to_neighborhood, by='fips_tract_id') |>
+      filter(!is.na(DECISION_DATE))
+    
+    screen_neighborhood_age <- d_neigh |>
+      group_by(neighborhood, year, month, age_grp) |>
+      summarise(n_screened_in = sum(screened_in == TRUE, na.rm = TRUE),
+                n_calls = n(),
+                .groups = "keep"
+      ) |>
+      ungroup() 
+    
+    screen_neighborhood_MR <- d_neigh |>
+      group_by(neighborhood, year, month, MANDATED_REPORTER) |>
+      summarise(n_screened_in = sum(screened_in == TRUE, na.rm = TRUE),
+                n_calls = n(),
+                .groups = "keep"
+      ) |>
+      ungroup() 
+    
+    screen_neighborhood_age_report <- screen_neighborhood_age |> 
+      group_by(year, month, age_grp) |>
+      summarise(neighborhood = "Total",
+                n_calls = sum(n_calls),
+                n_screened_in = sum(n_screened_in)) %>%
+      bind_rows(screen_neighborhood_age, .) |>
+      rename(group = "age_grp")
+    
+    screen_neighborhood_MR_report <- screen_neighborhood_MR |> 
+      group_by(year, month, MANDATED_REPORTER) |>
+      summarise(neighborhood = "Total",
+                n_calls = sum(n_calls),
+                n_screened_in = sum(n_screened_in)) %>%
+      bind_rows(screen_neighborhood_MR, .)
+    
+    screen_neighborhood_MR_report <- screen_neighborhood_MR_report |>
+      mutate(MANDATED_REPORTER = recode_factor(MANDATED_REPORTER, Yes = "MR", No = "Non_MR")) |>
+      rename(group = "MANDATED_REPORTER")
+    
+    
+    screen_neighborhood <- rbind(screen_neighborhood_age_report, screen_neighborhood_MR_report) |>
+      arrange(neighborhood, year, month)
+    
+    screen_neighborhood_2 <- screen_neighborhood |>
+      group_by(neighborhood, year, month) |>
+      summarise(group = "Total",
+                n_calls = sum(n_calls),
+                n_screened_in = sum(n_screened_in)) %>%
+      bind_rows(screen_neighborhood, .) |>
+      arrange(neighborhood, year, month)
+    
+    screen_neighborhood_rate <- screen_neighborhood_2 |>
+      rowwise() |>
+      mutate(screen_in_rate = round(n_screened_in / n_calls, 2)) |>
+      mutate(across(starts_with('n_'),
+                    ~ifelse(.x < 5, NA, .x)))
+    
+    d_report <- screen_neighborhood_rate |> 
+      drop_na(neighborhood)
+    
   })
   
+  output$report_table <- renderTable({
+    head(d_report() |> filter(neighborhood == "Avondale") |> select(-screen_in_rate))
+  }, digits = 0)
+  
   output$pin_button <- renderUI({
-    req(d_geocoded())
+    req(d_report())
     
     actionButton('pin', "Save data")
   })
@@ -202,7 +304,7 @@ server <- function(input, output, session) {
                                       key = Sys.getenv("CONNECT_API_KEY_DEV"))
     
     salt_board |> 
-      pins::pin_write(d_geocoded(), "AFT_intake_data_geocoded")
+      pins::pin_write(d_report(), "AFT_intake_neigbhorhood_report")
     
     showModal(
       modalDialog(
