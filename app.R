@@ -3,11 +3,10 @@ library(readr)
 library(dplyr)
 library(shiny)
 library(addr)
-library(shinycssloaders)
 
 # Define UI for data upload app ----
 ui <- fluidPage(
-
+  
   # App title ----
   titlePanel("AFT File Ingestion"),
   
@@ -37,10 +36,10 @@ ui <- fluidPage(
       fluidRow(
         column(
           h3("Original Data"),
-          withSpinner(tableOutput("original")), width = 6),
+          tableOutput("original"), width = 6),
         column(
           h3("Geocoded Data"),
-          withSpinner(tableOutput("prepped")), width = 4)
+          tableOutput("prepped"), width = 4)
       ),
       hr(),
       fluidRow(
@@ -92,7 +91,8 @@ server <- function(input, output, session) {
     req(input$file)
 
     d <- read_csv(input$file$datapath)
-    d <- read_csv('test_sacwis_output.csv')
+    
+    shinybusy::show_modal_progress_circle()
     
     d <- d |> 
       rename_with(toupper, everything()) |> 
@@ -134,11 +134,17 @@ server <- function(input, output, session) {
       tidyr::drop_na(address) |> 
       mutate(clean_address = toupper(clean_address_text(address))) 
     
+    shinybusy::update_modal_progress(.2)
+    
     t$addr <- as_addr(t$clean_address)
+    
+    shinybusy::update_modal_progress(.4)
     
     num_addr_attempted_match <- nrow(t)
     
     t$cagis_addr_matches <- addr_match(t$addr, cagis_addr$cagis_addr)
+    
+    shinybusy::update_modal_progress(.8)
     
     t2 <- t |>
       mutate(
@@ -179,6 +185,8 @@ server <- function(input, output, session) {
       dplyr::mutate(cagis_addr = purrr::list_c(cagis_addr_matches)) |>
       dplyr::left_join(cagis_addr, by = "cagis_addr")
     
+    shinybusy::update_modal_progress(.9)
+    
     t4 <- t3 |> 
       tidyr::unnest(cagis_addr_data) |> 
       tidyr::drop_na(cagis_s2) |> 
@@ -190,11 +198,19 @@ server <- function(input, output, session) {
     d_geocoded <- t5 |> 
       select(INTAKE_ID, SCREENING_DECISION, DECISION_DATE, BIRTH_DATE, PERSON_ID, RACE,
              MANDATED_REPORTER, block_group_id, census_tract_id) 
+    
+
+    shinybusy::update_modal_progress(1)
+
+    shinybusy::remove_modal_progress()
+    
+    d_geocoded
 
   })
   
   output$prepped <- renderTable({
     
+    req(d_geocoded())
     
     head(d_geocoded()[, c("INTAKE_ID", "census_tract_id")])
     
@@ -278,9 +294,7 @@ server <- function(input, output, session) {
     
     screen_neighborhood_rate <- screen_neighborhood_2 |>
       rowwise() |>
-      mutate(screen_in_rate = round(n_screened_in / n_calls, 2)) |>
-      mutate(across(starts_with('n_'),
-                    ~ifelse(.x < 5, NA, .x)))
+      mutate(screen_in_rate = round(n_screened_in / n_calls, 2)) 
     
     d_report <- screen_neighborhood_rate |> 
       drop_na(neighborhood)
