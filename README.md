@@ -7,13 +7,13 @@
 
 ## Instructions for Use
 
-### Open the Starter App
+### Open the JFS_data App
 
-1.  In Docker Desktop, search for "degauss/jfs_data" and "Pull" the container
+1.  In Docker Desktop, in the top blue search bar, search for "degauss/jfs_data" and "Pull" the container
 
-2.  Once the container is in your local Docker Desktop, find it and click "Run". In the popup box, expand the options and in the space marked "Local Host", type in "3838" and click Run
+2.  After pulling, navigate to "Images", find degauss/jfs_data and click "Run". In the popup box, expand the options and in the space marked "Local Host", type in "3838" and click Run
 
-3.  Navigate to the Containers page and in your line for the shiny_starter, click to button to open in browser
+3.  Navigate to the Containers page and select degauss/jfs_data. Towards top of the screen, click on the blue link that says "3838:3838" to launch the app.
 
 4.  Now that you're in the app, you can upload your .csv file
 
