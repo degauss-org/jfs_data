@@ -323,7 +323,7 @@
     },
     "commonmark": {
       "Source": "CRAN",
-      "Repository": "https://cran.rstudio.com",
+      "Repository": "https://ropensci.r-universe.dev",
       "description": {
         "Package": "commonmark",
         "Type": "Package",
@@ -430,6 +430,43 @@
         "Repository": "CRAN",
         "Date/Publication": "2024-11-14 09:20:02 UTC",
         "Built": "R 4.2.2; x86_64-apple-darwin17.0; 2025-01-02 14:48:42 UTC; unix"
+      }
+    },
+    "dht": {
+      "Source": "github",
+      "Repository": null,
+      "description": {
+        "Package": "dht",
+        "Title": "A Collection of Functions to Assist Building DeGAUSS Containers",
+        "Version": "1.2.3",
+        "Authors@R": "c(\n    person(given = \"Erika\",\n           family = \"Rasnick\",\n           role = c(\"aut\", \"cre\"),\n           email = \"erika.rasnick@cchmc.org\"), \n    person(given = \"Cole\",\n           family = \"Brokamp\",\n           role = c(\"aut\"))\n           )",
+        "Description": "degauss helper tools are used to develop and run DeGAUSS containers.",
+        "License": "GPL (>= 3)",
+        "Encoding": "UTF-8",
+        "Roxygen": "list(markdown = TRUE)",
+        "RoxygenNote": "7.2.2",
+        "Suggests": "testthat (>= 3.0.0), sf (>= 0.8-1), renv (>= 0.8.3), tibble,\nknitr, rmarkdown",
+        "Imports": "cli (>= 2.2.0), magrittr, readr (>= 2.0.0), dplyr (>= 1.0.0),\ntidyr (>= 1.0.0), glue (>= 1.4.2), fs (>= 1.5.0), withr (>=\n2.2.0), purrr (>= 0.3.4), stringr (>= 1.4.0), whisker (>= 0.4),\nps (>= 1.6.0), prettyunits, tidyselect",
+        "Depends": "R (>= 2.10)",
+        "Config/testthat/edition": "3",
+        "URL": "http://degauss.org/dht",
+        "VignetteBuilder": "knitr",
+        "BugReports": "https://github.com/degauss-org/dht/issues",
+        "RemoteType": "github",
+        "RemoteHost": "api.github.com",
+        "RemoteRepo": "dht",
+        "RemoteUsername": "degauss-org",
+        "RemoteRef": "HEAD",
+        "RemoteSha": "4d10437461416e688ea259a37c2ce3b5bae96238",
+        "GithubRepo": "dht",
+        "GithubUsername": "degauss-org",
+        "GithubRef": "HEAD",
+        "GithubSHA1": "4d10437461416e688ea259a37c2ce3b5bae96238",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-02-21 19:56:59 UTC; vanug6",
+        "Author": "Erika Rasnick [aut, cre],\n  Cole Brokamp [aut]",
+        "Maintainer": "Erika Rasnick <erika.rasnick@cchmc.org>",
+        "Built": "R 4.2.2; ; 2023-02-21 19:56:59 UTC; unix"
       }
     },
     "digest": {
@@ -1355,6 +1392,35 @@
         "Archs": "promises.so.dSYM"
       }
     },
+    "ps": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "ps",
+        "Title": "List, Query, Manipulate System Processes",
+        "Version": "1.7.2",
+        "Authors@R": "c(\n    person(\"Jay\", \"Loden\", role = \"aut\"),\n    person(\"Dave\", \"Daeschler\", role = \"aut\"),\n    person(\"Giampaolo\", \"Rodola'\", role = \"aut\"),\n    person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = c(\"aut\", \"cre\")),\n    person(\"RStudio\", role = c(\"cph\", \"fnd\"))\n  )",
+        "Description": "List, query and manipulate all system processes, on\n    'Windows', 'Linux' and 'macOS'.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://github.com/r-lib/ps#readme, https://ps.r-lib.org/",
+        "BugReports": "https://github.com/r-lib/ps/issues",
+        "Depends": "R (>= 3.4)",
+        "Imports": "utils",
+        "Suggests": "callr, covr, curl, pillar, pingr, processx (>= 3.1.0), R6,\nrlang, testthat (>= 3.0.0),",
+        "Biarch": "true",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.2.1",
+        "Config/testthat/edition": "3",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "NeedsCompilation": "yes",
+        "Packaged": "2022-10-26 17:03:09 UTC; gaborcsardi",
+        "Author": "Jay Loden [aut],\n  Dave Daeschler [aut],\n  Giampaolo Rodola' [aut],\n  Gábor Csárdi [aut, cre],\n  RStudio [cph, fnd]",
+        "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-10-26 17:32:36 UTC",
+        "Built": "R 4.2.0; x86_64-apple-darwin17.0; 2022-10-27 11:36:42 UTC; unix"
+      }
+    },
     "purrr": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -2230,8 +2296,38 @@
     }
   },
   "files": {
+    "addr_prep.R": {
+      "checksum": "03e5ba7d2364df7933e64cee55ba9e25"
+    },
     "app.R": {
       "checksum": "7593d8fec58a32df16f86711579312cf"
+    },
+    "DeGAUSS_hex.png": {
+      "checksum": "f02c314a17f516db29beb80bf2606793"
+    },
+    "intake_report.Rmd": {
+      "checksum": "13acbc2cfc30a49d63297a192148035c"
+    },
+    "README.html": {
+      "checksum": "2e40e8281c383e3c6476d4f9e93298f4"
+    },
+    "README.md": {
+      "checksum": "a7897f8761e4d02a1b4b96cb244f2558"
+    },
+    "test_sacwis_output.csv": {
+      "checksum": "64a7e5b27f7a104b2018b5e3df9390aa"
+    },
+    "test/aft_test_data_geocoded.csv": {
+      "checksum": "2ea5680cc574d34e6da677345f384ba8"
+    },
+    "test/aft_test_data.csv": {
+      "checksum": "ede02f5f6ebc4473e00689989bf016a1"
+    },
+    "test/sim_test_data_new.csv": {
+      "checksum": "a97311c7b82bd3a75ecff6bcf328d06e"
+    },
+    "tract_to_neighborhood.rds": {
+      "checksum": "45d549b20eaddf56ceacf3f7cb173ad0"
     }
   },
   "users": null
