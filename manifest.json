@@ -62,8 +62,8 @@
       }
     },
     "addr": {
-      "Source": "https://geomarker-io.r-universe.dev",
-      "Repository": null,
+      "Source": "geomarkerio",
+      "Repository": "https://geomarker-io.r-universe.dev",
       "description": {
         "Package": "addr",
         "Title": "Clean, Parse, Harmonize, Match, and Geocode Messy Real-World\nAddresses",
