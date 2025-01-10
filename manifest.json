@@ -323,7 +323,7 @@
     },
     "commonmark": {
       "Source": "CRAN",
-      "Repository": "https://cran.rstudio.com",
+      "Repository": "https://ropensci.r-universe.dev",
       "description": {
         "Package": "commonmark",
         "Type": "Package",
