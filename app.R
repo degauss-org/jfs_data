@@ -92,6 +92,8 @@ server <- function(input, output, session) {
 
     d <- read_csv(input$file$datapath)
     
+
+    
     shinybusy::show_modal_progress_circle()
     
     d <- d |> 
@@ -115,13 +117,14 @@ server <- function(input, output, session) {
       filter(ALLEGATION_ADDRESS == "Unknown Address" | is.na(ALLEGATION_ADDRESS)) |> 
       mutate(address = CHILD_ADDRESS)
     
+
+    
     used_child_address <- nrow(d1)
 
     d2 <- d |>
       filter(!INTAKE_ID %in% d1$INTAKE_ID) |> 
       mutate(address = ALLEGATION_ADDRESS)
-    
-    
+
      d3 <- rbind(d1, d2) |> 
        select(-c(ALLEGATION_ADDRESS, CHILD_ADDRESS))
      
@@ -129,20 +132,25 @@ server <- function(input, output, session) {
        d3 |> 
          filter(is.na(address)) 
      )
+     
     
     t <- d3 |> 
       tidyr::drop_na(address) |> 
       mutate(clean_address = toupper(clean_address_text(address))) 
     
+    
+    
     shinybusy::update_modal_progress(.2)
     
     t$addr <- as_addr(t$clean_address)
     
+    
     shinybusy::update_modal_progress(.4)
     
     num_addr_attempted_match <- nrow(t)
+
     
-    t$cagis_addr_matches <- addr_match(t$addr, cagis_addr$cagis_addr)
+    t$cagis_addr_matches <- addr_match(t$addr, cagis_addr()$cagis_addr)
     
     shinybusy::update_modal_progress(.8)
     
@@ -181,16 +189,16 @@ server <- function(input, output, session) {
     
     t3 <- t2  |>
       filter(addr_match_result %in% c("single_match")) |> 
-      #tibble::enframe(name = "input_addr", value = "cagis_addr") |>
-      dplyr::mutate(cagis_addr = purrr::list_c(cagis_addr_matches)) |>
-      dplyr::left_join(cagis_addr, by = "cagis_addr")
+      #tibble::enframe(x = t2$cagis_addr_matches, name = "input_addr", value = "cagis_addr") |>
+      dplyr::mutate(cagis_addr = purrr::list_c(list(cagis_addr_matches))) |>
+      dplyr::left_join(cagis_addr(), by = "cagis_addr")
     
     shinybusy::update_modal_progress(.9)
     
     t4 <- t3 |> 
       tidyr::unnest(cagis_addr_data) |> 
       tidyr::drop_na(cagis_s2) |> 
-      mutate(block_group_id = tiger_block_groups(s2::as_s2_cell(cagis_s2)), year = '2010') 
+      mutate(block_group_id = s2_join_tiger_bg(s2::as_s2_cell(cagis_s2), year = '2013')) 
     
     t5 <- t4|> 
       mutate(census_tract_id = stringr::str_sub(block_group_id, end = -2)) 
@@ -314,8 +322,8 @@ server <- function(input, output, session) {
   observeEvent(input$pin, {
     
     salt_board <- pins::board_connect(auth = "manual",
-                                      server = Sys.getenv("CONNECT_SERVER_DEV"),
-                                      key = Sys.getenv("CONNECT_API_KEY_DEV"))
+                                      server = Sys.getenv("CONNECT_SERVER"),
+                                      key = Sys.getenv("CONNECT_API_KEY"))
     
     salt_board |> 
       pins::pin_write(d_report(), "AFT_intake_neigbhorhood_report")
