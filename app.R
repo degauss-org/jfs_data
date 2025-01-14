@@ -237,6 +237,7 @@ server <- function(input, output, session) {
     
     ##
     r <- r  |> 
+      filter(!duplicated(INTAKE_ID)) |>
       mutate(DECISION_DATE = lubridate::as_date(DECISION_DATE, format = "%m/%d/%Y"),
              BIRTH_DATE = lubridate::as_date(BIRTH_DATE, format = "%m/%d/%Y")) |> 
       mutate(month = lubridate::month(DECISION_DATE),
