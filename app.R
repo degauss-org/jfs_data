@@ -26,7 +26,8 @@ ui <- fluidPage(
                            "text/comma-separated-values,text/plain",
                            ".csv")),
       
-      uiOutput('pin_button')
+      uiOutput('pin_button'),
+      #downloadButton('download', "save")
       
     ),
     
@@ -236,8 +237,8 @@ server <- function(input, output, session) {
     
     ##
     r <- r  |> 
-      mutate(DECISION_DATE = lubridate::as_date(DECISION_DATE, format = "%m/%d/%y"),
-             BIRTH_DATE = lubridate::as_date(BIRTH_DATE, format = "%m/%d/%y")) |> 
+      mutate(DECISION_DATE = lubridate::as_date(DECISION_DATE, format = "%m/%d/%Y"),
+             BIRTH_DATE = lubridate::as_date(BIRTH_DATE, format = "%m/%d/%Y")) |> 
       mutate(month = lubridate::month(DECISION_DATE),
              year = lubridate::year(DECISION_DATE)) 
     
@@ -324,9 +325,10 @@ server <- function(input, output, session) {
     salt_board <- pins::board_connect(auth = "manual",
                                       server = Sys.getenv("CONNECT_SERVER"),
                                       key = Sys.getenv("CONNECT_API_KEY"))
-    
-    salt_board |> 
+
+    salt_board |>
       pins::pin_write(d_report(), "AFT_intake_neigbhorhood_report")
+    
     
     showModal(
       modalDialog(
@@ -337,6 +339,15 @@ server <- function(input, output, session) {
     ))
     
   })
+  
+  # output$download <- downloadHandler(
+  #   filename = function() {
+  #     paste("AFT_intake_report_", Sys.Date(), ".csv", sep="")
+  #   },
+  #   content = function(file) {
+  #     write.csv(d_report(), file)
+  #   }
+  # )
   
   
 }

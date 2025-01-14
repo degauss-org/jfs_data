@@ -62,8 +62,8 @@
       }
     },
     "addr": {
-      "Source": "geomarkerio",
-      "Repository": "https://geomarker-io.r-universe.dev",
+      "Source": "https://geomarker-io.r-universe.dev",
+      "Repository": null,
       "description": {
         "Package": "addr",
         "Title": "Clean, Parse, Harmonize, Match, and Geocode Messy Real-World\nAddresses",
@@ -323,7 +323,7 @@
     },
     "commonmark": {
       "Source": "CRAN",
-      "Repository": "https://ropensci.r-universe.dev",
+      "Repository": "https://cran.rstudio.com",
       "description": {
         "Package": "commonmark",
         "Type": "Package",
@@ -2266,7 +2266,7 @@
       "checksum": "03e5ba7d2364df7933e64cee55ba9e25"
     },
     "app.R": {
-      "checksum": "7593d8fec58a32df16f86711579312cf"
+      "checksum": "403e3b87d3013d5fb6f2aac41dc00f4d"
     },
     "DeGAUSS_hex.png": {
       "checksum": "f02c314a17f516db29beb80bf2606793"
