@@ -27,7 +27,7 @@ ui <- fluidPage(
                            ".csv")),
       
       uiOutput('pin_button'),
-      #downloadButton('download', "save")
+      downloadButton('download', "download")
       
     ),
     
@@ -93,8 +93,6 @@ server <- function(input, output, session) {
 
     d <- read_csv(input$file$datapath)
     
-
-    
     shinybusy::show_modal_progress_circle()
     
     d <- d |> 
@@ -138,8 +136,6 @@ server <- function(input, output, session) {
     t <- d3 |> 
       tidyr::drop_na(address) |> 
       mutate(clean_address = toupper(clean_address_text(address))) 
-    
-    
     
     shinybusy::update_modal_progress(.2)
     
@@ -236,8 +232,11 @@ server <- function(input, output, session) {
       mutate(screened_in = SCREENING_DECISION %in% c("SCREENED IN", "SCREENED IN AR"))
     
     ##
+    r <- r |> 
+      slice_head(by = INTAKE_ID)
+    
     r <- r  |> 
-      filter(!duplicated(INTAKE_ID)) |>
+    #  filter(!duplicated(INTAKE_ID)) |>
       mutate(DECISION_DATE = lubridate::as_date(DECISION_DATE, format = "%m/%d/%Y"),
              BIRTH_DATE = lubridate::as_date(BIRTH_DATE, format = "%m/%d/%Y")) |> 
       mutate(month = lubridate::month(DECISION_DATE),
@@ -341,14 +340,14 @@ server <- function(input, output, session) {
     
   })
   
-  # output$download <- downloadHandler(
-  #   filename = function() {
-  #     paste("AFT_intake_report_", Sys.Date(), ".csv", sep="")
-  #   },
-  #   content = function(file) {
-  #     write.csv(d_report(), file)
-  #   }
-  # )
+  output$download <- downloadHandler(
+    filename = function() {
+      paste("AFT_intake_report_", Sys.Date(), ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(d_report(), file)
+    }
+  )
   
   
 }
